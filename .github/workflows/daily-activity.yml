@@ -35,16 +35,17 @@ jobs:
             fi
           done
 
-      - name: Commit and push using PAT as user
+      - name: Commit and push using user PAT
         env:
           GH_PRIVATE_PAT: ${{ secrets.GH_PRIVATE_PAT }}
         run: |
           git config --global user.name "buildscool"
-          git config --global user.email "tech@builds.cool"  # ← Replace with your GitHub email
+          git config --global user.email "tech@builds.cool"  # ← Use your GitHub email
 
           git add log.md
           git commit -m "chore: daily activity summary [skip ci]" || echo "No changes to commit"
 
-          git remote set-url origin https://x-access-token:${GH_PRIVATE_PAT}@github.com/${{ github.repository }}.git
-          git push origin HEAD:main
+          # Force remote to use PAT
+          git remote set-url origin https://buildscool:${GH_PRIVATE_PAT}@github.com/buildscool/public-activity-log.git
+
           git push origin HEAD:main
