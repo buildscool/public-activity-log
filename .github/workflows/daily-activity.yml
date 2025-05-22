@@ -35,13 +35,18 @@ jobs:
             fi
           done
 
-      - name: Commit and push
+      - name: Commit and push with PAT
         env:
           GH_PRIVATE_PAT: ${{ secrets.GH_PRIVATE_PAT }}
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name "Activity Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${GH_PRIVATE_PAT}@github.com/buildscool/public-activity-log.git
+
+          # Replace origin to use PAT-based URL
+          git remote set-url origin https://x-access-token:${GH_PRIVATE_PAT}@github.com/${{ github.repository }}
+
           git add log.md
           git commit -m "chore: daily activity summary [skip ci]" || echo "No changes to commit"
+
+          # Push using authenticated remote
           git push origin HEAD:main
