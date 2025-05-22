@@ -40,7 +40,7 @@ jobs:
           GH_PRIVATE_PAT: ${{ secrets.GH_PRIVATE_PAT }}
         run: |
           git config --global user.name "Activity Bot"
-          git config --global user.email "you@example.com" # ← Change this to your real GitHub email
+          git config --global user.email "tech@builds.cool" # ← Change this to your real GitHub email
 
           git add log.md
           git commit -m "chore: daily activity summary [skip ci]" || echo "No changes to commit"
