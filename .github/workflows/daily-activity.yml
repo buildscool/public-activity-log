@@ -1,0 +1,28 @@
+# .github/workflows/daily-activity.yml
+name: Log Daily Activity
+
+on:
+  schedule:
+    - cron: '30 14 * * *'  # Runs daily at 2:30 PM UTC
+  workflow_dispatch:        # Optional: lets you trigger it manually
+
+jobs:
+  commit-log:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Update log
+        run: |
+          echo "📅 Activity log for $(date -u)" >> log.md
+          echo "- Commit from automation bot" >> log.md
+          echo "" >> log.md
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add log.md
+          git commit -m "chore: daily heartbeat [skip ci]" || echo "No changes to commit"
+          git push
