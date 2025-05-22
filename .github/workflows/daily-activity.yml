@@ -1,28 +1,44 @@
-# .github/workflows/daily-activity.yml
-name: Log Daily Activity
+name: Daily Activity Summary
 
 on:
   schedule:
-    - cron: '30 14 * * *'  # Runs daily at 2:30 PM UTC
-  workflow_dispatch:        # Optional: lets you trigger it manually
+    - cron: '0 14 * * *' # Every day at 2 PM UTC
+  workflow_dispatch:
 
 jobs:
-  commit-log:
+  fetch-commits:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout this repo
         uses: actions/checkout@v3
 
-      - name: Update log
+      - name: Fetch commit logs from private repos
+        env:
+          GH_TOKEN: ${{ secrets.GH_PRIVATE_PAT }}
+          GH_USERNAME: buildscool
         run: |
-          echo "📅 Activity log for $(date -u)" >> log.md
-          echo "- Commit from automation bot" >> log.md
-          echo "" >> log.md
+          echo "## $(date -u '+%Y-%m-%d') Activity Summary" >> log.md
+
+          repos=$(gh repo list $GH_USERNAME --limit 100 --json name,private -q '.[] | select(.private) | .name')
+
+          for repo in $repos; do
+            commits=$(gh api \
+              repos/$GH_USERNAME/$repo/commits \
+              -q '.[0:5][] | "- " + .commit.message' \
+              --paginate \
+              --silent || true)
+            
+            if [ ! -z "$commits" ]; then
+              echo "### 📁 $repo" >> log.md
+              echo "$commits" >> log.md
+              echo "" >> log.md
+            fi
+          done
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add log.md
-          git commit -m "chore: daily heartbeat [skip ci]" || echo "No changes to commit"
+          git commit -m "chore: daily activity summary [skip ci]" || echo "No changes to commit"
           git push
